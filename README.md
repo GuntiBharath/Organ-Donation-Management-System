@@ -37,14 +37,8 @@ lifeshare/
 │   └── package-lock.json
 │
 ├── playground-1.mongodb.js       # MongoDB playground script (optional)
-├── Mid Sem PPT Help (1).pptx     # Presentation file (optional)
-├── Project Report Format.docx    # Documentation template (optional)
-├── Synopsis Format (1).docx      # Documentation template (optional)
-└── weekly report.docx            # Documentation (optional)
+
 ```
-
----
-
 ## Features
 
 - **Donor Registration:** Donors can register by providing personal, medical, and location information, including organs they are willing to donate.
