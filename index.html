@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Organ Donation Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #2c7be5;
+            --secondary: #6b21a8;
+            --danger: #e63e3e;
+            --success: #10b981;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #2c7be5 0%, #6b21a8 100%);
+        }
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://placehold.co/') no-repeat center center;
+            background-size: cover;
+            height: 60vh;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .form-input {
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(44, 123, 229, 0.2);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        .btn-primary:hover {
+            background-color: #2569c7;
+        }
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        .btn-secondary:hover {
+            background-color: #5d1894;
+        }
+        .toast {
+            animation: slideIn 0.5s forwards;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .map-container {
+            height: 400px;
+            position: relative;
+        }
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid rgba(44, 123, 229, 0.2);
+            border-bottom-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        /* Dark mode toggle styles */
+        .dark-mode-toggle {
+            width: 50px;
+            height: 50px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .dark {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .dark .navbar {
+            background: linear-gradient(135deg, #1a365d 0%, #4a1e9e 100%);
+        }
+        .dark .bg-white {
+            background-color: #2d3748 !important;
+            color: #e2e8f0;
+        }
+        .dark .text-gray-800 {
+            color: #e2e8f0 !important;
+        }
+        .dark .text-gray-600 {
+            color: #a0aec0 !important;
+        }
+        .dark .card {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        .dark .form-input {
+            background-color: #4a5568;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+        .dark .form-input:focus {
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="navbar text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-heartbeat text-2xl"></i>
+                <span class="text-xl font-bold">LifeShare</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#home" class="hover:text-gray-200 transition">Home</a>
+                <a href="#about" class="hover:text-gray-200 transition">About</a>
+                <a href="#register" class="hover:text-gray-200 transition">Register</a>
+                <a href="#search" class="hover:text-gray-200 transition">Search</a>
+                <a href="#hospitals" class="hover:text-gray-200 transition">Hospitals</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobileMenuButton" class="text-white focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-gray-800 px-4 py-2">
+            <a href="#home" class="block py-2 text-white hover:bg-gray-700 rounded px-2">Home</a>
+            <a href="#about" class="block py-2 text-white hover:bg-gray-700 rounded px-2">About</a>
+            <a href="#register" class="block py-2 text-white hover:bg-gray-700 rounded px-2">Register</a>
+            <a href="#search" class="block py-2 text-white hover:bg-gray-700 rounded px-2">Search</a>
+            <a href="#hospitals" class="block py-2 text-white hover:bg-gray-700 rounded px-2">Hospitals</a>
+          </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero flex items-center justify-center text-center text-white">
+        <div class="px-4">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Organ Donation Saves Lives</h1>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">Join our network of donors and recipients to create life-saving connections with your gift of organ donation.</p>
+            <div class="space-x-4">
+                <a href="#register" class="btn-primary text-white px-6 py-3 rounded-lg font-medium inline-block hover:bg-blue-700 transition">Become a Donor</a>
+                <a href="#about" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium inline-block hover:bg-gray-100 transition">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">About Our Organ Donation System</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="card bg-gray-50 p-6 rounded-lg shadow-md text-center transition">
+                    <div class="text-blue-500 text-4xl mb-4">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Life-Saving Matches</h3>
+                    <p class="text-gray-600">Our advanced matching algorithm connects donors with recipients based on medical compatibility, location, and urgency.</p>
+                </div>
+                <div class="card bg-gray-50 p-6 rounded-lg shadow-md text-center transition">
+                    <div class="text-purple-500 text-4xl mb-4">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Secure & Private</h3>
+                    <p class="text-gray-600">Your personal and medical information is protected with the highest security standards and strict confidentiality.</p>
+                </div>
+                <div class="card bg-gray-50 p-6 rounded-lg shadow-md text-center transition">
+                    <div class="text-green-500 text-4xl mb-4">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Nationwide Network</h3>
+                    <p class="text-gray-600">Connected with over 500 hospitals and transplant centers across the country to facilitate timely transplants.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section id="register" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Pledge as Donor or Recipient</h2>
+            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="flex border-b">
+                    <button class="tab-btn py-4 px-6 font-medium text-blue-600 border-b-2 border-blue-600" data-tab="donor-tab">Donor Pledge</button>
+                    <button class="tab-btn py-4 px-6 font-medium text-gray-600" data-tab="recipient-tab">Recipient Pledge</button>
+                </div>
+                
+                <!-- Donor Registration Form -->
+                <div id="donor-tab" class="tab-content active p-6">
+                    <form id="donorForm" class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Personal Information</h3>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-name">Full Name</label>
+                                <input type="text" id="donor-name" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-email">Email</label>
+                                <input type="email" id="donor-email" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-phone">Phone</label>
+                                <input type="tel" id="donor-phone" pattern="^(\+91|91)?[6789]\d{9}$" title="Enter a valid phone number: Must be exactly 10 digits long. Should start with 6, 7, 8, or 9. No letters, spaces, or special characters allowed. For international format, you may include +91 or 91 optionally." class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-dob">Date of Birth</label>
+                                <input type="date" id="donor-dob" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Medical Information</h3>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-blood-type">Blood Type</label>
+                                <select id="donor-blood-type" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-organs">Organs Willing to Donate</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="kidney" class="form-checkbox h-5 w-5 text-blue-600"> 
+                                        <span class="ml-2 text-gray-700">Kidney</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="liver" class="form-checkbox h-5 w-5 text-blue-600">
+                                        <span class="ml-2 text-gray-700">Liver (partial)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="lung" class="form-checkbox h-5 w-5 text-blue-600">
+                                        <span class="ml-2 text-gray-700">Lung (lobe)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="pancreas" class="form-checkbox h-5 w-5 text-blue-600">
+                                        <span class="ml-2 text-gray-700">Pancreas</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="heart" class="form-checkbox h-5 w-5 text-blue-600">
+                                        <span class="ml-2 text-gray-700">Heart</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="donor-organs" value="intestine" class="form-checkbox h-5 w-5 text-blue-600">
+                                        <span class="ml-2 text-gray-700">Intestine</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="donor-conditions">Existing Medical Conditions</label>
+                                <textarea id="donor-conditions" rows="3" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <div class="mb-4 flex items-center">
+                                <input type="checkbox" id="donor-consent" class="form-checkbox h-5 w-5 text-blue-600" required>
+                                <label for="donor-consent" class="ml-2 text-gray-700">I consent to share my information with transplant centers</label>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <h3 class="text-xl font-bold mb-4">Location Information</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="donor-country">Country</label>
+                                    <select id="donor-country" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                        <option value="IN">India</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="donor-state">State/Region</label>
+                                    <input type="text" id="donor-state" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="donor-city">City</label>
+                                    <input type="text" id="donor-city" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2 text-center">
+                            <button type="submit" class="btn-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                                Submit Donor Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Recipient Registration Form -->
+                <div id="recipient-tab" class="tab-content p-6">
+                    <form id="recipientForm" class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Patient Information</h3>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-name">Full Name</label>
+                                <input type="text" id="recipient-name" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-email">Email</label>
+                                <input type="email" id="recipient-email" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-phone">Phone</label>
+                                <input type="tel" id="recipient-phone" pattern="^(\+91|91)?[6789]\d{9}$" title="Enter a valid phone number: Must be exactly 10 digits long. Should start with 6, 7, 8, or 9. No letters, spaces, or special characters allowed. For international format, you may include +91 or 91 optionally." class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-dob">Date of Birth</label>
+                                <input type="date" id="recipient-dob" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Medical Information</h3>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-blood-type">Blood Type</label>
+                                <select id="recipient-blood-type" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-organ">Organ Needed</label>
+                                <select id="recipient-organ" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Select Organ</option>
+                                    <option value="kidney">Kidney</option>
+                                    <option value="liver">Liver</option>
+                                    <option value="lung">Lung</option>
+                                    <option value="heart">Heart</option>
+                                    <option value="pancreas">Pancreas</option>
+                                    <option value="intestine">Intestine</option>
+                                    <option value="cornea">Cornea</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-urgency">Urgency Level</label>
+                                <select id="recipient-urgency" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="low">Low (can wait months/years)</option>
+                                    <option value="medium">Medium (needed in weeks/months)</option>
+                                    <option value="high">High (needed in days/weeks)</option>
+                                    <option value="critical">Critical (immediate need)</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="recipient-medical-id">Medical Record ID</label>
+                                <input type="text" id="recipient-medical-id" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <h3 class="text-xl font-bold mb-4">Hospital Information</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="recipient-hospital">Hospital/Clinic Name</label>
+                                    <input type="text" id="recipient-hospital" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="recipient-hospital-country">Country</label>
+                                    <select id="recipient-hospital-country" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                        <option value="IN">India</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="recipient-hospital-state">State/Region</label>
+                                    <input type="text" id="recipient-hospital-state" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <div class="mb-4 flex items-center">
+                                <input type="checkbox" id="recipient-consent" class="form-checkbox h-5 w-5 text-blue-600" required>
+                                <label for="recipient-consent" class="ml-2 text-gray-700">I consent to share my medical information with potential donors and transplant centers</label>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2 text-center">
+                            <button type="submit" class="btn-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                                Submit Recipient Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Search for Organ Donors</h2>
+            <div class="max-w-4xl mx-auto bg-gray-50 p-6 rounded-lg shadow-md">
+                <form id="searchForm" class="grid md:grid-cols-3 gap-4 mb-8">
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="search-organ">Organ Needed</label>
+                        <select id="search-organ" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">All Organs</option>
+                            <option value="kidney">Kidney</option>
+                            <option value="liver">Liver</option>
+                            <option value="lung">Lung</option>
+                            <option value="heart">Heart</option>
+                            <option value="pancreas">Pancreas</option>
+                            <option value="intestine">Intestine</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="search-blood-type">Blood Type</label>
+                        <select id="search-blood-type" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Any Blood Type</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="search-location">Location</label>
+                        <input type="text" id="search-location" placeholder="Country, State or City" class="form-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-3 text-center mt-4">
+                        <button type="submit" class="btn-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                            Search Donors
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="searchResults" class="border-t pt-6">
+                    <div id="noResultsMessage" class="text-center py-8 hidden">
+                        <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-600">No results found</h3>
+                        <p class="text-gray-500">Try adjusting your search filters to find donors.</p>
+                    </div>
+                    
+                    <div id="donorList" class="space-y-4 hidden">
+                        <h3 class="text-xl font-bold mb-4">Potential Donors</h3>
+                        <!-- Donor cards will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hospitals Section -->
+    <section id="hospitals" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Partner Hospitals & Transplant Centers</h2>
+            <div class="text-center mb-8 max-w-2xl mx-auto">
+                <p class="text-gray-600">Our network of certified transplant centers adhere to the highest medical and ethical standards in organ donation and transplantation.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="card bg-white p-6 rounded-lg shadow-md transition">
+<img src="apollo.png" alt="Modern hospital building with glass facade and landscaped entrance" class="w-full h-48 object-cover rounded mb-4">
+                    <h3 class="text-xl font-bold mb-2">Apollo Hospitals</h3>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i> Indraprastha Apollo Hospital</p>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-phone text-blue-500 mr-2"></i> 011 7179 1090</p>
+                    <p class="text-gray-600 mb-4"><i class="fas fa-star text-yellow-400 mr-2"></i> 5.0 (1,240 reviews)</p>
+                    <p class="text-gray-700">Leading transplant center specializing in kidney and liver transplants with a 98% success rate.</p>
+                </div>
+                
+                <div class="card bg-white p-6 rounded-lg shadow-md transition">
+<img src="fortis-hospital.jpg" alt="University medical center with research buildings and emergency entrance with ambulances" class="w-full h-48 object-cover rounded mb-4">
+                    <h3 class="text-xl font-bold mb-2">Fortis Memorial Research Institute</h3>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>Sector - 44, Opposite HUDA City Centre, Gurugram, Haryana</p>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-phone text-blue-500 mr-2"></i> 088600 22554</p>
+                    <p class="text-gray-600 mb-4"><i class="fas fa-star text-yellow-400 mr-2"></i> 4.9 (980 reviews)</p>
+                    <p class="text-gray-700">Pioneers in innovative transplant techniques including paired kidney exchange programs.</p>
+                </div>
+                
+                <div class="card bg-white p-6 rounded-lg shadow-md transition">
+<img src="manipal.jpg" class="w-full h-48 object-cover rounded mb-4">
+                    <h3 class="text-xl font-bold mb-2">Manipal Hospital</h3>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i> Gol Chakkar, Carterpuri Rd, Block F, Palam Vihar, Gurugram, Haryana</p>
+                    <p class="text-gray-600 mb-2"><i class="fas fa-phone text-blue-500 mr-2"></i>  0124 616 56662</p>
+                    <p class="text-gray-600 mb-4"><i class="fas fa-star text-yellow-400 mr-2"></i> 4.8 (750 reviews)</p>
+                    <p class="text-gray-700">Specialized pediatric transplant center with family-centered care approach.</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="#search" class="btn-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition inline-block">
+                    View All Partner Hospitals
+                </a>
+            </div>
+        </div>
+    </section>
+
+   
+<script>
+  // Wait until the HTML is fully loaded
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("mobileMenuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    // When the button is clicked, toggle the "hidden" class
+    toggleBtn.addEventListener("click", () => {
+      mobileMenu.classList.toggle("hidden");
+    });
+
+    // Donor form submission handler (placeholder, no functionality yet)
+    const donorForm = document.getElementById("donorForm");
+    donorForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      alert("Donor registration submitted successfully!");
+      donorForm.reset();
+    });
+
+    // Recipient form submission handler - added similar functionality as donor form
+    const recipientForm = document.getElementById("recipientForm");
+    recipientForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      alert("Recipient registration submitted successfully!");
+      recipientForm.reset();
+    });
+  });
+
+    </script>
+    <script>
+      // Tab switching logic for Donor and Recipient pledge forms
+      document.addEventListener("DOMContentLoaded", function () {
+        const tabButtons = document.querySelectorAll(".tab-btn");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            const targetTab = button.getAttribute("data-tab");
+
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove("text-blue-600", "border-b-2", "border-blue-600"));
+            tabContents.forEach(content => content.classList.remove("active"));
+
+            // Add active class to clicked button and corresponding content
+            button.classList.add("text-blue-600", "border-b-2", "border-blue-600");
+            const targetContent = document.getElementById(targetTab);
+            if (targetContent) {
+              targetContent.classList.add("active");
+            }
+          });
+        });
+      });
+    </script>
+</body>
+</html>
