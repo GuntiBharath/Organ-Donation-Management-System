@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection string with fallback to environment variable
-const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Gunti:Bharath@cluster0.mongodb.net/lifeshare?retryWrites=true&w=majority';
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://<Username>:<Password>@cluster0.mongodb.net/lifeshare?retryWrites=true&w=majority';
 
 // Connect to MongoDB with options for new URL parser and unified topology
 mongoose.connect(mongoUri, {
